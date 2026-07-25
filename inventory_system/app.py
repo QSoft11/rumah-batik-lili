@@ -86,39 +86,6 @@ def init_db():
         if not cursor.fetchone():
             hashed_pwd = generate_password_hash('natadi11', method='pbkdf2:sha256')
             cursor.execute('INSERT INTO admin (username, password) VALUES (?, ?)', ('natadi11', hashed_pwd))
-            
-        cursor.execute('SELECT COUNT(*) as count FROM transaksi')
-        if cursor.fetchone()['count'] == 0:
-            from datetime import timedelta
-            now = datetime.now()
-            sample_trxs = [
-                (f"TRX-{(now - timedelta(days=6)).strftime('%Y%m%d')}-0001", (now - timedelta(days=6, hours=2)).strftime('%Y-%m-%d %H:%M:%S'), 460000, 'Ibu Hj. Aminah'),
-                (f"TRX-{(now - timedelta(days=5)).strftime('%Y%m%d')}-0001", (now - timedelta(days=5, hours=4)).strftime('%Y-%m-%d %H:%M:%S'), 835000, 'Pak Bambang'),
-                (f"TRX-{(now - timedelta(days=4)).strftime('%Y%m%d')}-0001", (now - timedelta(days=4, hours=1)).strftime('%Y-%m-%d %H:%M:%S'), 285000, 'Sdr. Rizky'),
-                (f"TRX-{(now - timedelta(days=3)).strftime('%Y%m%d')}-0001", (now - timedelta(days=3, hours=5)).strftime('%Y-%m-%d %H:%M:%S'), 1250000, 'Ny. Dewi Melati'),
-                (f"TRX-{(now - timedelta(days=2)).strftime('%Y%m%d')}-0001", (now - timedelta(days=2, hours=3)).strftime('%Y-%m-%d %H:%M:%S'), 635000, 'Bpk. Ir. Hendra'),
-                (f"TRX-{(now - timedelta(days=1)).strftime('%Y%m%d')}-0001", (now - timedelta(days=1, hours=6)).strftime('%Y-%m-%d %H:%M:%S'), 480000, 'Toko Batik Nusantara'),
-                (f"TRX-{now.strftime('%Y%m%d')}-0001", now.strftime('%Y-%m-%d %H:%M:%S'), 935000, 'Ibu Ratna Pertiwi'),
-            ]
-            cursor.executemany('''
-                INSERT INTO transaksi (kode_transaksi, tanggal, total_harga, nama_pembeli)
-                VALUES (?, ?, ?, ?)
-            ''', sample_trxs)
-
-        cursor.execute('SELECT COUNT(*) as count FROM barang')
-        if cursor.fetchone()['count'] == 0:
-            sample_barang = [
-                ('BTK-001', 'Kemeja Batik Sogan Solo Pria XL', 'Kemeja Pria', 'XL', 285000, 18, 5),
-                ('BTK-002', 'Gamis Batik Tulis Mega Mendung Cirebon', 'Gamis & Dress', 'L', 650000, 4, 5),
-                ('BTK-003', 'Kain Batik Cap Parang Rusak 2 Meter', 'Kain Batik', '2 Meter', 175000, 25, 8),
-                ('BTK-004', 'Blouse Batik Pekalongan Modern L', 'Atasan Wanita', 'M', 195000, 2, 5),
-                ('BTK-005', 'Kemeja Batik Slimfit Motif Kawung M', 'Kemeja Pria', 'L', 240000, 12, 5),
-                ('BTK-006', 'Kain Batik Sutra Halus Motif Sidomukti', 'Kain Premium', '2.5 Meter', 1200000, 6, 3),
-            ]
-            cursor.executemany('''
-                INSERT INTO barang (kode_barang, nama_barang, kategori, ukuran, harga_jual, stok, stok_minimum)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', sample_barang)
 
         db.commit()
 
