@@ -151,24 +151,19 @@ def check_session_security():
     now_ts = datetime.now().timestamp()
     last_active = session.get('last_active')
     
+    # Idle timeout check (15 menit = 900 detik)
     if last_active and (now_ts - last_active > 900):
         session.clear()
         flash('Sesi Anda telah berakhir demi keamanan. Silakan login kembali.', 'warning')
         return redirect(url_for('login'))
         
-    just_logged_in = session.pop('just_logged_in', False)
-    referrer = request.referrer
-    
-    if not just_logged_in:
-        if not referrer or not referrer.startswith(request.host_url):
-            session.clear()
-            flash('Demi keamanan, akses via link langsung harus melalui verifikasi login terlebih dahulu.', 'warning')
-            return redirect(url_for('login'))
-            
     session['last_active'] = now_ts
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
@@ -183,7 +178,6 @@ def login():
             session['user_id'] = user['id']
             session['username'] = user['username']
             session['last_active'] = datetime.now().timestamp()
-            session['just_logged_in'] = True
             flash('Selamat datang kembali, Administrator Rumah Batik Lili!', 'success')
             return redirect(url_for('dashboard'))
         else:
