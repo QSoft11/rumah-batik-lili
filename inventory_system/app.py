@@ -151,7 +151,6 @@ def check_session_security():
     now_ts = datetime.now().timestamp()
     last_active = session.get('last_active')
     
-    # Idle timeout check (15 menit = 900 detik)
     if last_active and (now_ts - last_active > 900):
         session.clear()
         flash('Sesi Anda telah berakhir demi keamanan. Silakan login kembali.', 'warning')
