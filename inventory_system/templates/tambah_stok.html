@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Tambah Stok — {{ item.nama_barang }}{% endblock %}
+{% block page_title %}Penambahan Stok Barang{% endblock %}
+
+{% block content %}
+<div class="card-box" style="max-width: 580px; margin: 0 auto;">
+    <div class="card-box-header">
+        <div class="card-box-title">Form Restock Barang</div>
+        <a href="{{ url_for('data_stok') }}" class="btn-action btn-action-outline btn-action-sm">
+            <i class="ri-arrow-left-line"></i> Kembali
+        </a>
+    </div>
+
+    <div class="card-box-body">
+        <div style="background-color: var(--slate-100); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px; border-left: 4px solid var(--brand-maroon);">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--brand-maroon); text-transform: uppercase;">{{ item.kode_barang }}</div>
+            <h4 style="font-size: 1.05rem; margin: 2px 0;">{{ item.nama_barang }}</h4>
+            <div style="font-size: 0.85rem; color: var(--slate-600); display: flex; gap: 16px; margin-top: 6px;">
+                <span>Kategori: <strong>{{ item.kategori }}</strong></span>
+                <span>Stok Saat Ini: <strong>{{ item.stok }} unit</strong></span>
+            </div>
+        </div>
+
+        <form action="{{ url_for('tambah_stok', id=item.id) }}" method="POST">
+            <div class="form-group-box">
+                <label class="form-label-box" for="jumlah">Jumlah Tambah Stok (Unit) *</label>
+                <input type="number" id="jumlah" name="jumlah" class="form-control-box" min="1" placeholder="Masukkan jumlah unit masuk..." required autofocus>
+            </div>
+
+            <div class="form-group-box" style="margin-bottom: 24px;">
+                <label class="form-label-box" for="catatan">Catatan / Supplier (Opsional)</label>
+                <input type="text" id="catatan" name="catatan" class="form-control-box" placeholder="Contoh: Restock Supplier Pekalongan Kloter 2">
+            </div>
+
+            <div style="display: flex; gap: 12px; border-top: 1px solid var(--slate-200); padding-top: 16px;">
+                <button type="submit" class="btn-action btn-action-primary" style="flex: 1;">
+                    <i class="ri-check-line"></i> Simpan Penambahan Stok
+                </button>
+                <a href="{{ url_for('data_stok') }}" class="btn-action btn-action-outline" style="flex: 1;">
+                    Batal
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

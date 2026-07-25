@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Laporan Penjualan{% endblock %}
+{% block page_title %}Laporan Penjualan & Rekapitulasi{% endblock %}
+
+{% block content %}
+<div class="card-box">
+    <div class="card-box-header">
+        <div class="card-box-title">
+            <i class="ri-filter-3-line" style="margin-right: 6px;"></i>
+            Filter Periode Laporan Penjualan
+        </div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <a href="{{ url_for('laporan', preset='today') }}" class="btn-action btn-action-outline btn-action-sm">Hari Ini</a>
+            <a href="{{ url_for('laporan', preset='7days') }}" class="btn-action btn-action-outline btn-action-sm">7 Hari Terakhir</a>
+            <a href="{{ url_for('laporan', preset='this_month') }}" class="btn-action btn-action-outline btn-action-sm">Bulan Ini</a>
+            <a href="{{ url_for('laporan') }}" class="btn-action btn-action-outline btn-action-sm">Semua Waktu</a>
+        </div>
+    </div>
+
+    <div class="card-box-body">
+        <form action="{{ url_for('laporan') }}" method="GET" id="formFilterLaporan">
+            <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+                <div class="form-group-box" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                    <label class="form-label-box" for="tgl_mulai">Tanggal Mulai</label>
+                    <input type="date" id="tgl_mulai" name="tgl_mulai" class="form-control-box" value="{{ tgl_mulai }}" onchange="document.getElementById('formFilterLaporan').submit()">
+                </div>
+
+                <div class="form-group-box" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                    <label class="form-label-box" for="tgl_selesai">Tanggal Selesai</label>
+                    <input type="date" id="tgl_selesai" name="tgl_selesai" class="form-control-box" value="{{ tgl_selesai }}" onchange="document.getElementById('formFilterLaporan').submit()">
+                </div>
+
+                <div>
+                    <button type="submit" class="btn-action btn-action-primary" style="height: 38px;">
+                        <i class="ri-search-line"></i> Tampilkan Laporan
+                    </button>
+                    {% if tgl_mulai or tgl_selesai %}
+                        <a href="{{ url_for('laporan') }}" class="btn-action btn-action-outline" style="height: 38px; margin-left: 4px;" title="Reset Filter">
+                            <i class="ri-refresh-line"></i> Reset
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="metrics-grid">
+    <div class="stat-card-box">
+        <div>
+            <p>Total Transaksi</p>
+            <h3>{{ total_transaksi }} <small style="font-size: 0.85rem; font-weight: normal; color: var(--slate-500);">Trx</small></h3>
+        </div>
+        <i class="ri-receipt-line"></i>
+    </div>
+
+    <div class="stat-card-box" style="border-left-color: var(--status-success-fg);">
+        <div>
+            <p>Total Pendapatan (Omset)</p>
+            <h3 style="font-size: 1.4rem; color: var(--status-success-fg);">Rp {{ "{:,.0f}".format(total_pendapatan).replace(',', '.') }}</h3>
+        </div>
+        <i class="ri-money-dollar-circle-line" style="color: var(--status-success-fg);"></i>
+    </div>
+</div>
+
+<div class="card-box">
+    <div class="card-box-header">
+        <div class="card-box-title">Daftar Transaksi Penjualan</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="{{ url_for('export_laporan_csv', tgl_mulai=tgl_mulai, tgl_selesai=tgl_selesai) }}" class="btn-action btn-action-outline btn-action-sm no-print">
+                <i class="ri-file-excel-line"></i> Export CSV / Excel
+            </a>
+            <button onclick="window.print()" class="btn-action btn-action-outline btn-action-sm no-print">
+                <i class="ri-printer-line"></i> Cetak Laporan
+            </button>
+            <form action="{{ url_for('reset_transaksi') }}" method="POST" onsubmit="return confirm('PERINGATAN: Apakah Anda yakin ingin MENGOSONGKAN SELURUH DATA TRANSAKSI? Data yang dihapus tidak dapat dikembalikan.');" style="display: inline;" class="no-print">
+                <button type="submit" class="btn-action btn-action-danger btn-action-sm">
+                    <i class="ri-refresh-line"></i> Reset Seluruh Transaksi
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table-grid">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">No</th>
+                    <th>Kode Transaksi</th>
+                    <th>Waktu & Tanggal</th>
+                    <th>Nama Pembeli</th>
+                    <th>Total Pembayaran</th>
+                    <th class="no-print" style="text-align: right;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in daftar_transaksi %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><strong style="color: var(--brand-maroon);">{{ t.kode_transaksi }}</strong></td>
+                        <td style="font-size: 0.85rem; color: var(--slate-700); font-weight: 500;">{{ t.tanggal | format_wib }}</td>
+                        <td>{{ t.nama_pembeli }}</td>
+                        <td><strong>Rp {{ "{:,.0f}".format(t.total_harga).replace(',', '.') }}</strong></td>
+                        <td class="no-print" style="text-align: right;">
+                            <div style="display: inline-flex; gap: 4px;">
+                                <a href="{{ url_for('detail_transaksi', id=t.id) }}" class="btn-action btn-action-outline btn-action-sm" title="Lihat Struk">
+                                    <i class="ri-eye-line"></i> Detail
+                                </a>
+                                <form action="{{ url_for('hapus_transaksi', id=t.id) }}" method="POST" onsubmit="return confirm('Hapus transaksi {{ t.kode_transaksi }}?');" style="display: inline;">
+                                    <button type="submit" class="btn-action btn-action-outline btn-action-sm" style="color: var(--status-danger-fg);" title="Hapus Transaksi">
+                                        <i class="ri-delete-bin-line"></i> Hapus
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--slate-500); padding: 36px;">
+                            Tidak ada data transaksi pada periode yang dipilih.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

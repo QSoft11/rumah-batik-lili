@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Rumah Batik Lili{% endblock %} — Sistem Penjualan & Inventori</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        
+        <aside class="sidebar" id="sidebarNav">
+            <div class="sidebar-header">
+                <div class="brand-icon-box">
+                    <i class="ri-store-3-line"></i>
+                </div>
+                <div class="brand-text-box">
+                    <h1>Rumah Batik Lili</h1>
+                    <span>Boutique Inventory</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Menu Utama</div>
+                
+                <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <div class="nav-link-content">
+                        <i class="ri-dashboard-3-line"></i>
+                        <span>Dashboard</span>
+                    </div>
+                </a>
+
+                <a href="{{ url_for('data_barang') }}" class="nav-link {% if 'barang' in request.endpoint %}active{% endif %}">
+                    <div class="nav-link-content">
+                        <i class="ri-archive-stack-line"></i>
+                        <span>Data Barang</span>
+                    </div>
+                </a>
+
+                <a href="{{ url_for('data_stok') }}" class="nav-link {% if 'stok' in request.endpoint %}active{% endif %}">
+                    <div class="nav-link-content">
+                        <i class="ri-box-3-line"></i>
+                        <span>Stok Barang</span>
+                    </div>
+                </a>
+
+                <div class="nav-section-title">Transaksi & Laporan</div>
+
+                <a href="{{ url_for('transaksi') }}" class="nav-link {% if request.endpoint == 'transaksi' %}active{% endif %}">
+                    <div class="nav-link-content">
+                        <i class="ri-shopping-cart-2-line"></i>
+                        <span>Transaksi Penjualan</span>
+                    </div>
+                </a>
+
+                <a href="{{ url_for('laporan') }}" class="nav-link {% if 'laporan' in request.endpoint or 'detail_transaksi' in request.endpoint %}active{% endif %}">
+                    <div class="nav-link-content">
+                        <i class="ri-file-chart-line"></i>
+                        <span>Laporan Penjualan</span>
+                    </div>
+                </a>
+
+                <a href="{{ url_for('notifikasi') }}" class="nav-link {% if request.endpoint == 'notifikasi' %}active{% endif %}">
+                    <div class="nav-link-content">
+                        <i class="ri-notification-3-line"></i>
+                        <span>Notifikasi Stok</span>
+                    </div>
+                    {% if low_stock_count > 0 %}
+                        <span class="badge-pill badge-pill-danger">{{ low_stock_count }}</span>
+                    {% endif %}
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div style="font-size: 0.85rem;">
+                    <strong style="color: #FFFFFF;">{{ session.get('username', 'Admin') }}</strong><br>
+                    <small style="color: var(--slate-400);">Administrator</small>
+                </div>
+                <a href="{{ url_for('logout') }}" style="color: #FCA5A5; font-size: 1.1rem;" title="Keluar">
+                    <i class="ri-logout-box-r-line"></i>
+                </a>
+            </div>
+        </aside>
+
+        
+        <main class="main-content">
+            <header class="topbar">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button class="btn-action btn-action-outline btn-action-sm mobile-toggle-btn" id="sidebarToggle">
+                        <i class="ri-menu-line"></i>
+                    </button>
+                    <div class="page-title">
+                        <h2>{% block page_title %}Dashboard{% endblock %}</h2>
+                    </div>
+                </div>
+
+                
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="font-size: 0.85rem; color: var(--slate-600); font-weight: 500;" id="liveClockDisplay">
+                        <i class="ri-time-line" style="color: var(--brand-maroon); margin-right: 4px;"></i>
+                        <span id="clockText">Memuat waktu...</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 10px; padding-left: 16px; border-left: 1px solid var(--slate-200);">
+                        <span class="badge-pill badge-pill-success" style="font-size: 0.75rem; padding: 4px 10px;">
+                            <i class="ri-wifi-line"></i> Online
+                        </span>
+
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 32px; height: 32px; border-radius: 50%; background-color: var(--brand-maroon); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;">
+                                {{ session.get('username', 'A')[0] | upper }}
+                            </div>
+                            <div style="font-size: 0.8rem; display: none; @media(min-width: 768px){display: block;}">
+                                <strong>{{ session.get('username', 'natadi11') }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-body">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert-box-item alert-box-item-{% if category == 'danger' or category == 'warning' %}danger{% else %}success{% endif %}">
+                                <span>{{ message }}</span>
+                                <button type="button" style="background: none; border: none; cursor: pointer; color: inherit;" onclick="this.parentElement.remove()">
+                                    <i class="ri-close-line"></i>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    
+    <script>
+    function updateLiveClock() {
+        const clockEl = document.getElementById('clockText');
+        if (!clockEl) return;
+        
+        const now = new Date();
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        
+        const dayName = days[now.getDay()];
+        const day = now.getDate();
+        const monthName = months[now.getMonth()];
+        const year = now.getFullYear();
+        
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        
+        clockEl.textContent = `${dayName}, ${day} ${monthName} ${year} — ${hours}:${minutes}:${seconds} WIB`;
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        updateLiveClock();
+        setInterval(updateLiveClock, 1000);
+    });
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

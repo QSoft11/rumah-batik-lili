@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Stok Barang{% endblock %}
+{% block page_title %}Monitoring Stok Barang{% endblock %}
+
+{% block content %}
+<div class="card-box">
+    <div class="card-box-header">
+        <div style="display: flex; gap: 8px;">
+            <a href="{{ url_for('data_stok', status='semua') }}" class="btn-action {% if current_filter == 'semua' %}btn-action-primary{% else %}btn-action-outline{% endif %} btn-action-sm">
+                Semua Barang
+            </a>
+            <a href="{{ url_for('data_stok', status='menipis') }}" class="btn-action {% if current_filter == 'menipis' %}btn-action-primary{% else %}btn-action-outline{% endif %} btn-action-sm">
+                Stok Menipis
+            </a>
+            <a href="{{ url_for('data_stok', status='habis') }}" class="btn-action {% if current_filter == 'habis' %}btn-action-primary{% else %}btn-action-outline{% endif %} btn-action-sm">
+                Stok Habis
+            </a>
+        </div>
+
+        <div class="search-wrap">
+            <i class="ri-search-line"></i>
+            <input type="text" class="form-control-box" placeholder="Cari nama atau kode barang..." data-table-search="tableStok">
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table-grid" id="tableStok">
+            <thead>
+                <tr>
+                    <th>Kode</th>
+                    <th>Nama Barang</th>
+                    <th>Kategori</th>
+                    <th>Harga Satuan</th>
+                    <th>Stok Minimum</th>
+                    <th>Stok Fisik</th>
+                    <th>Status Stok</th>
+                    <th style="text-align: right;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in barang_stok %}
+                    <tr>
+                        <td><strong>{{ b.kode_barang }}</strong></td>
+                        <td>{{ b.nama_barang }}</td>
+                        <td><span class="badge-pill badge-pill-info">{{ b.kategori }}</span></td>
+                        <td>Rp {{ "{:,.0f}".format(b.harga_jual).replace(',', '.') }}</td>
+                        <td>{{ b.stok_minimum }} unit</td>
+                        <td><strong>{{ b.stok }}</strong> unit</td>
+                        <td>
+                            {% if b.stok == 0 %}
+                                <span class="badge-pill badge-pill-danger">Habis</span>
+                            {% elif b.stok <= b.stok_minimum %}
+                                <span class="badge-pill badge-pill-warning">Menipis</span>
+                            {% else %}
+                                <span class="badge-pill badge-pill-success">Aman</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right;">
+                            <a href="{{ url_for('tambah_stok', id=b.id) }}" class="btn-action btn-action-primary btn-action-sm">
+                                Tambah Stok
+                            </a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: var(--slate-500); padding: 36px;">
+                            Tidak ada data barang untuk kriteria filter ini.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Barang — {{ item.nama_barang }}{% endblock %}
+{% block page_title %}Edit Data Barang{% endblock %}
+
+{% block content %}
+<div class="card-box" style="max-width: 720px; margin: 0 auto;">
+    <div class="card-box-header">
+        <div class="card-box-title">Form Ubah Data Barang</div>
+        <a href="{{ url_for('data_barang') }}" class="btn-action btn-action-outline btn-action-sm">
+            <i class="ri-arrow-left-line"></i> Kembali
+        </a>
+    </div>
+
+    <div class="card-box-body">
+        <form action="{{ url_for('edit_barang', id=item.id) }}" method="POST">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group-box">
+                    <label class="form-label-box" for="kode_barang">Kode Barang *</label>
+                    <input type="text" id="kode_barang" name="kode_barang" class="form-control-box" value="{{ item.kode_barang }}" required style="font-weight: 700; text-transform: uppercase;">
+                </div>
+
+                <div class="form-group-box">
+                    <label class="form-label-box" for="kategori">Kategori Batik *</label>
+                    <select name="kategori" id="kategoriSelect" class="form-select-box" onchange="toggleKategoriBaru(this)">
+                        {% for kat in kategori_list %}
+                            <option value="{{ kat }}" {% if item.kategori == kat %}selected{% endif %}>{{ kat }}</option>
+                        {% endfor %}
+                        <option value="__NEW__">+ Tambah Kategori Baru...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group-box" id="groupKategoriBaru" style="display: none;">
+                <label class="form-label-box" for="kategori_baru">Nama Kategori Baru *</label>
+                <input type="text" id="kategori_baru" name="kategori_baru" class="form-control-box" placeholder="Contoh: Dompet Batik">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+                <div class="form-group-box">
+                    <label class="form-label-box" for="nama_barang">Nama Produk / Kain Batik *</label>
+                    <input type="text" id="nama_barang" name="nama_barang" class="form-control-box" value="{{ item.nama_barang }}" required>
+                </div>
+
+                <div class="form-group-box">
+                    <label class="form-label-box" for="ukuran">Ukuran Produk *</label>
+                    <select name="ukuran" id="ukuranSelect" class="form-select-box">
+                        {% set curr_uk = item.ukuran or 'All Size' %}
+                        <option value="All Size" {% if curr_uk == 'All Size' %}selected{% endif %}>All Size (Bebas)</option>
+                        <option value="S" {% if curr_uk == 'S' %}selected{% endif %}>S (Small)</option>
+                        <option value="M" {% if curr_uk == 'M' %}selected{% endif %}>M (Medium)</option>
+                        <option value="L" {% if curr_uk == 'L' %}selected{% endif %}>L (Large)</option>
+                        <option value="XL" {% if curr_uk == 'XL' %}selected{% endif %}>XL (Extra Large)</option>
+                        <option value="XXL" {% if curr_uk == 'XXL' %}selected{% endif %}>XXL</option>
+                        <option value="3XL" {% if curr_uk == '3XL' %}selected{% endif %}>3XL</option>
+                        <option value="1 Meter" {% if curr_uk == '1 Meter' %}selected{% endif %}>1 Meter (Kain)</option>
+                        <option value="2 Meter" {% if curr_uk == '2 Meter' %}selected{% endif %}>2 Meter (Kain)</option>
+                        <option value="2.5 Meter" {% if curr_uk == '2.5 Meter' %}selected{% endif %}>2.5 Meter (Kain)</option>
+                        {% if curr_uk not in ['All Size', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '1 Meter', '2 Meter', '2.5 Meter'] %}
+                            <option value="{{ curr_uk }}" selected>{{ curr_uk }}</option>
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                <div class="form-group-box">
+                    <label class="form-label-box" for="harga_jual">Harga Jual (Rp) *</label>
+                    <input type="number" id="harga_jual" name="harga_jual" class="form-control-box" min="0" step="any" value="{{ item.harga_jual }}" required>
+                </div>
+
+                <div class="form-group-box">
+                    <label class="form-label-box">Stok Saat Ini (Read-only)</label>
+                    <input type="text" class="form-control-box" value="{{ item.stok }} unit" readonly style="background-color: var(--slate-100); font-weight: 600;">
+                </div>
+
+                <div class="form-group-box">
+                    <label class="form-label-box" for="stok_minimum">Stok Minimum *</label>
+                    <input type="number" id="stok_minimum" name="stok_minimum" class="form-control-box" min="1" value="{{ item.stok_minimum }}" required>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--slate-200);">
+                <button type="submit" class="btn-action btn-action-primary" style="flex: 1;">
+                    <i class="ri-save-line"></i> Simpan Perubahan
+                </button>
+                <a href="{{ url_for('data_barang') }}" class="btn-action btn-action-outline" style="flex: 1;">
+                    Batal
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleKategoriBaru(select) {
+    const group = document.getElementById('groupKategoriBaru');
+    const input = document.getElementById('kategori_baru');
+    if (select.value === '__NEW__') {
+        group.style.display = 'block';
+        input.required = true;
+        input.focus();
+    } else {
+        group.style.display = 'none';
+        input.required = false;
+    }
+}
+</script>
+{% endblock %}

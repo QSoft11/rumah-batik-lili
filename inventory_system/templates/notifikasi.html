@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Notifikasi Stok{% endblock %}
+{% block page_title %}Pusat Notifikasi Alert Stok Kritis{% endblock %}
+
+{% block content %}
+
+<div class="card-box" style="border-left: 4px solid var(--status-danger-fg);">
+    <div class="card-box-header">
+        <div class="card-box-title" style="color: var(--status-danger-fg);">
+            <i class="ri-error-warning-line" style="margin-right: 6px;"></i>
+            Stok Habis (Kosong 0 Unit)
+        </div>
+        <span class="badge-pill badge-pill-danger">{{ stok_habis|length }} Produk</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table-grid">
+            <thead>
+                <tr>
+                    <th>Kode Barang</th>
+                    <th>Nama Produk</th>
+                    <th>Kategori</th>
+                    <th>Harga Jual</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Tindakan Restock</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in stok_habis %}
+                    <tr>
+                        <td><strong>{{ b.kode_barang }}</strong></td>
+                        <td><strong>{{ b.nama_barang }}</strong></td>
+                        <td><span class="badge-pill badge-pill-info">{{ b.kategori }}</span></td>
+                        <td>Rp {{ "{:,.0f}".format(b.harga_jual).replace(',', '.') }}</td>
+                        <td><span class="badge-pill badge-pill-danger">Habis (0)</span></td>
+                        <td style="text-align: right;">
+                            <a href="{{ url_for('tambah_stok', id=b.id) }}" class="btn-action btn-action-danger btn-action-sm">
+                                <i class="ri-add-line"></i> Tambah Stok
+                            </a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--slate-500); padding: 32px;">
+                            Tidak ada produk yang stoknya habis.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<div class="card-box" style="border-left: 4px solid var(--status-warning-fg);">
+    <div class="card-box-header">
+        <div class="card-box-title" style="color: var(--status-warning-fg);">
+            <i class="ri-alert-line" style="margin-right: 6px;"></i>
+            Stok Menipis (Hampir Habis ≤ Batas Minimum)
+        </div>
+        <span class="badge-pill badge-pill-warning">{{ stok_menipis|length }} Produk</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table-grid">
+            <thead>
+                <tr>
+                    <th>Kode Barang</th>
+                    <th>Nama Produk</th>
+                    <th>Kategori</th>
+                    <th>Sisa Stok</th>
+                    <th>Batas Minimum</th>
+                    <th style="text-align: right;">Tindakan Restock</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in stok_menipis %}
+                    <tr>
+                        <td><strong>{{ b.kode_barang }}</strong></td>
+                        <td><strong>{{ b.nama_barang }}</strong></td>
+                        <td><span class="badge-pill badge-pill-info">{{ b.kategori }}</span></td>
+                        <td><strong style="color: var(--status-warning-fg);">{{ b.stok }} unit</strong></td>
+                        <td>{{ b.stok_minimum }} unit</td>
+                        <td style="text-align: right;">
+                            <a href="{{ url_for('tambah_stok', id=b.id) }}" class="btn-action btn-action-primary btn-action-sm">
+                                <i class="ri-add-line"></i> Tambah Stok
+                            </a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--slate-500); padding: 32px;">
+                            Tidak ada produk yang stoknya menipis.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

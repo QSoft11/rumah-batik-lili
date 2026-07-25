@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Tambah Barang Baru{% endblock %}
+{% block page_title %}Tambah Master Barang{% endblock %}
+
+{% block content %}
+<div class="card-box" style="max-width: 720px; margin: 0 auto;">
+    <div class="card-box-header">
+        <div class="card-box-title">Form Data Barang Baru</div>
+        <a href="{{ url_for('data_barang') }}" class="btn-action btn-action-outline btn-action-sm">
+            <i class="ri-arrow-left-line"></i> Kembali
+        </a>
+    </div>
+
+    <div class="card-box-body">
+        <form action="{{ url_for('tambah_barang') }}" method="POST">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group-box">
+                    <label class="form-label-box" for="kode_barang">Kode Barang *</label>
+                    <input type="text" id="kode_barang" name="kode_barang" class="form-control-box" value="{{ suggested_code }}" required style="font-weight: 700; text-transform: uppercase;">
+                </div>
+
+                <div class="form-group-box">
+                    <label class="form-label-box" for="kategori">Kategori Batik *</label>
+                    <select name="kategori" id="kategoriSelect" class="form-select-box" onchange="toggleKategoriBaru(this)">
+                        <option value="">-- Pilih Kategori --</option>
+                        {% for kat in kategori_list %}
+                            <option value="{{ kat }}">{{ kat }}</option>
+                        {% endfor %}
+                        <option value="__NEW__">+ Tambah Kategori Baru...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group-box" id="groupKategoriBaru" style="display: none;">
+                <label class="form-label-box" for="kategori_baru">Nama Kategori Baru *</label>
+                <input type="text" id="kategori_baru" name="kategori_baru" class="form-control-box" placeholder="Contoh: Aksesoris Batik">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+                <div class="form-group-box">
+                    <label class="form-label-box" for="nama_barang">Nama Produk / Kain Batik *</label>
+                    <input type="text" id="nama_barang" name="nama_barang" class="form-control-box" placeholder="Contoh: Kemeja Batik Sogan Solo Pria" required>
+                </div>
+
+                <div class="form-group-box">
+                    <label class="form-label-box" for="ukuran">Ukuran Produk *</label>
+                    <select name="ukuran" id="ukuranSelect" class="form-select-box" onchange="toggleUkuranCustom(this)">
+                        <option value="All Size">All Size (Bebas)</option>
+                        <option value="S">S (Small)</option>
+                        <option value="M">M (Medium)</option>
+                        <option value="L">L (Large)</option>
+                        <option value="XL" selected>XL (Extra Large)</option>
+                        <option value="XXL">XXL</option>
+                        <option value="3XL">3XL</option>
+                        <option value="1 Meter">1 Meter (Kain)</option>
+                        <option value="2 Meter">2 Meter (Kain)</option>
+                        <option value="2.5 Meter">2.5 Meter (Kain)</option>
+                        <option value="__CUSTOM__">+ Ukuran Custom...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group-box" id="groupUkuranCustom" style="display: none;">
+                <label class="form-label-box" for="ukuran_custom">Ukuran Custom *</label>
+                <input type="text" id="ukuran_custom" class="form-control-box" placeholder="Contoh: Jumbo / 3 Meter" oninput="document.getElementById('ukuranSelect').options[document.getElementById('ukuranSelect').selectedIndex].value = this.value">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                <div class="form-group-box">
+                    <label class="form-label-box" for="harga_jual">Harga Jual (Rp) *</label>
+                    <input type="number" id="harga_jual" name="harga_jual" class="form-control-box" min="0" step="any" placeholder="150000" required>
+                </div>
+
+                <div class="form-group-box">
+                    <label class="form-label-box" for="stok">Stok Awal *</label>
+                    <input type="number" id="stok" name="stok" class="form-control-box" min="0" value="10" required>
+                </div>
+
+                <div class="form-group-box">
+                    <label class="form-label-box" for="stok_minimum">Stok Minimum *</label>
+                    <input type="number" id="stok_minimum" name="stok_minimum" class="form-control-box" min="1" value="5" required>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--slate-200);">
+                <button type="submit" class="btn-action btn-action-primary" style="flex: 1;">
+                    <i class="ri-save-line"></i> Simpan Barang
+                </button>
+                <a href="{{ url_for('data_barang') }}" class="btn-action btn-action-outline" style="flex: 1;">
+                    Batal
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleKategoriBaru(select) {
+    const group = document.getElementById('groupKategoriBaru');
+    const input = document.getElementById('kategori_baru');
+    if (select.value === '__NEW__') {
+        group.style.display = 'block';
+        input.required = true;
+        input.focus();
+    } else {
+        group.style.display = 'none';
+        input.required = false;
+    }
+}
+
+function toggleUkuranCustom(select) {
+    const group = document.getElementById('groupUkuranCustom');
+    const input = document.getElementById('ukuran_custom');
+    if (select.value === '__CUSTOM__') {
+        group.style.display = 'block';
+        input.required = true;
+        input.focus();
+    } else {
+        group.style.display = 'none';
+        input.required = false;
+    }
+}
+</script>
+{% endblock %}

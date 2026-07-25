@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Struk Transaksi — {{ transaksi.kode_transaksi }}{% endblock %}
+{% block page_title %}Detail Transaksi Penjualan{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;" class="no-print">
+    <a href="{{ url_for('laporan') }}" class="btn-action btn-action-outline">
+        <i class="ri-arrow-left-line"></i> Kembali ke Laporan
+    </a>
+    <button onclick="window.print()" class="btn-action btn-action-primary">
+        <i class="ri-printer-line"></i> Cetak Struk Thermal / Standard
+    </button>
+    <button onclick="connectBluetoothThermal()" class="btn-action btn-action-outline"
+        style="border-color: #2563EB; color: #2563EB; font-weight: 700;">
+        <i class="ri-bluetooth-line"></i> Cetak Bluetooth Printer Thermal
+    </button>
+</div>
+
+<div id="thermalStatus" class="no-print" style="display: none; margin-bottom: 16px;">
+    <div class="alert-box-item alert-box-item-success" id="thermalStatusBox">
+        <span id="thermalStatusMsg">Sedang menghubungkan ke printer bluetooth...</span>
+    </div>
+</div>
+
+<div class="card-box thermal-receipt-container" id="receiptPrintArea" style="max-width: 580px; margin: 0 auto;">
+    <div class="card-box-body" style="padding: 28px;">
+        <div
+            style="text-align: center; border-bottom: 2px dashed var(--slate-300); padding-bottom: 14px; margin-bottom: 16px;">
+            <h2 style="font-size: 1.3rem; color: var(--brand-maroon); font-weight: 800;">RUMAH BATIK LILI</h2>
+            <p style="font-size: 0.78rem; color: var(--slate-600); margin-top: 2px;">
+                Boutique & Koleksi Batik Nusantara Premium<br>
+                Jl. Raya Utama No. 11, Kota Presentasi
+            </p>
+        </div>
+
+        <div
+            style="display: flex; justify-content: space-between; font-size: 0.825rem; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--slate-200);">
+            <div>
+                <div style="color: var(--slate-500); font-size: 0.75rem;">Kode Transaksi</div>
+                <strong style="color: var(--brand-maroon);">{{ transaksi.kode_transaksi }}</strong>
+            </div>
+            <div style="text-align: right;">
+                <div style="color: var(--slate-500); font-size: 0.75rem;">Waktu & Tanggal</div>
+                <strong style="color: var(--slate-900);">{{ transaksi.tanggal | format_wib }}</strong>
+            </div>
+        </div>
+
+        <div style="font-size: 0.825rem; margin-bottom: 16px;">
+            <span style="color: var(--slate-500);">Nama Pembeli:</span> <strong>{{ transaksi.nama_pembeli }}</strong>
+        </div>
+
+        <table class="table-grid" style="margin-bottom: 16px;">
+            <thead>
+                <tr>
+                    <th>Produk & Ukuran</th>
+                    <th style="text-align: center;">Qty</th>
+                    <th style="text-align: right;">Harga</th>
+                    <th style="text-align: right;">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>
+                        <strong>{{ item.nama_barang }}</strong><br>
+                        <small style="color: var(--slate-500);">Ukuran: <strong style="color: var(--brand-maroon);">{{
+                                item.ukuran or 'All Size' }}</strong></small>
+                    </td>
+                    <td style="text-align: center;">{{ item.jumlah }}</td>
+                    <td style="text-align: right;">Rp {{ "{:,.0f}".format(item.harga_satuan).replace(',', '.') }}</td>
+                    <td style="text-align: right;"><strong>Rp {{ "{:,.0f}".format(item.subtotal).replace(',', '.')
+                            }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div style="border-top: 2px solid var(--slate-900); padding-top: 10px;">
+            <div
+                style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 800; color: var(--slate-900);">
+                <span>TOTAL BAYAR</span>
+                <span>Rp {{ "{:,.0f}".format(transaksi.total_harga).replace(',', '.') }}</span>
+            </div>
+        </div>
+
+        <div
+            style="margin-top: 24px; text-align: center; font-size: 0.75rem; color: var(--slate-500); border-top: 1px dashed var(--slate-300); padding-top: 12px;">
+            <p>*** Terima kasih telah berbelanja di Rumah Batik Lili ***</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function connectBluetoothThermal() {
+        const statusBox = document.getElementById('thermalStatus');
+        const statusMsg = document.getElementById('thermalStatusMsg');
+
+        if (!navigator.bluetooth) {
+            alert("Browser Anda tidak mendukung Web Bluetooth API. Silakan gunakan Google Chrome atau Microsoft Edge.");
+            return;
+        }
+
+        try {
+            statusBox.style.display = 'block';
+            statusMsg.textContent = 'Memilih printer bluetooth RPP02N...';
+
+            const device = await navigator.bluetooth.requestDevice({
+                acceptAllDevices: true,
+                optionalServices: [
+                    '000018f0-0000-1000-8000-00805f9b34fb',
+                    '0000e7e0-0000-1000-8000-00805f9b34fb',
+                    '0000ff00-0000-1000-8000-00805f9b34fb',
+                    '0000af00-0000-1000-8000-00805f9b34fb',
+                    '49535343-fe7d-41aa-8054-d019b4d50947'
+                ]
+            });
+
+            statusMsg.textContent = `Menghubungkan ke ${device.name || 'RPP02N Thermal Printer'}...`;
+            const server = await device.gatt.connect();
+
+            statusMsg.textContent = `Mencari layanan cetak (GATT Service)...`;
+            const services = await server.getPrimaryServices();
+            let targetCharacteristic = null;
+
+            for (const service of services) {
+                const characteristics = await service.getCharacteristics();
+                for (const char of characteristics) {
+                    if (char.properties.write || char.properties.writeWithoutResponse) {
+                        targetCharacteristic = char;
+                        break;
+                    }
+                }
+                if (targetCharacteristic) break;
+            }
+
+            if (!targetCharacteristic) {
+                throw new Error("Karakteristik cetak Bluetooth tidak ditemukan di RPP02N.");
+            }
+
+            statusMsg.textContent = `Mengirim perintah ESC/POS ke RPP02N...`;
+
+            let rawText = "\x1B\x40";
+            rawText += "\x1B\x61\x01";
+            rawText += "RUMAH BATIK LILI\n";
+            rawText += "Boutique & Koleksi Batik\n";
+            rawText += "--------------------------------\n";
+            rawText += "\x1B\x61\x00";
+            rawText += "Kode Trx : {{ transaksi.kode_transaksi }}\n";
+            rawText += "Waktu    : {{ transaksi.tanggal | format_wib }}\n";
+            rawText += "Pembeli  : {{ transaksi.nama_pembeli }}\n";
+            rawText += "--------------------------------\n";
+
+            {% for item in items %}
+            rawText += "{{ item.nama_barang }} ({{ item.ukuran or 'All Size' }})\n";
+            rawText += "  {{ item.jumlah }} x Rp {{ '{:,.0f}'.format(item.harga_satuan).replace(',', '.') }} = Rp {{ '{:,.0f}'.format(item.subtotal).replace(',', '.') }}\n";
+            {% endfor %}
+
+            rawText += "--------------------------------\n";
+            rawText += "\x1B\x45\x01";
+            rawText += "TOTAL BAYAR: Rp {{ '{:,.0f}'.format(transaksi.total_harga).replace(',', '.') }}\n";
+            rawText += "\x1B\x45\x00";
+            rawText += "\x1B\x61\x01";
+            rawText += "\nTerima Kasih\n\n\n\n";
+
+            const encoder = new TextEncoder();
+            const dataBytes = encoder.encode(rawText);
+
+            const CHUNK_SIZE = 20;
+            for (let i = 0; i < dataBytes.length; i += CHUNK_SIZE) {
+                const chunk = dataBytes.slice(i, i + CHUNK_SIZE);
+                if (targetCharacteristic.properties.writeWithoutResponse) {
+                    await targetCharacteristic.writeValueWithoutResponse(chunk);
+                } else {
+                    await targetCharacteristic.writeValue(chunk);
+                }
+            }
+
+            statusMsg.textContent = 'Sukses! Struk berhasil dicetak ke RPP02N Bluetooth.';
+            setTimeout(() => { statusBox.style.display = 'none'; }, 4000);
+        } catch (err) {
+            statusMsg.textContent = `Gagal mencetak: ${err.message}`;
+            console.error('Bluetooth thermal print error:', err);
+        }
+    }
+</script>
+{% endblock %}

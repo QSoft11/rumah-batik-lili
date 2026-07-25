@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Overview{% endblock %}
+{% block page_title %}Dashboard Analytics{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="metrics-grid">
+    <div class="stat-card-box">
+        <div>
+            <p>Total Master Barang</p>
+            <h3>{{ total_barang }}</h3>
+        </div>
+        <i class="ri-archive-line"></i>
+    </div>
+
+    <div class="stat-card-box" style="border-left-color: var(--status-warning-fg);">
+        <div>
+            <p>Stok Kritis / Habis</p>
+            <h3 style="color: var(--status-warning-fg);">{{ total_stok_kritis }}</h3>
+        </div>
+        <i class="ri-alert-line" style="color: var(--status-warning-fg);"></i>
+    </div>
+
+    <div class="stat-card-box" style="border-left-color: var(--status-success-fg);">
+        <div>
+            <p>Penjualan Hari Ini</p>
+            <h3 style="color: var(--status-success-fg);">{{ transaksi_hari_ini_count }}</h3>
+        </div>
+        <i class="ri-shopping-cart-2-line" style="color: var(--status-success-fg);"></i>
+    </div>
+
+    <div class="stat-card-box" style="border-left-color: var(--brand-maroon);">
+        <div>
+            <p>Nilai Aset Stok</p>
+            <h3 style="font-size: 1.25rem;">Rp {{ "{:,.0f}".format(total_aset_stok).replace(',', '.') }}</h3>
+        </div>
+        <i class="ri-wallet-3-line" style="color: var(--brand-maroon);"></i>
+    </div>
+</div>
+
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px;">
+    <div class="card-box" style="margin-bottom: 0;">
+        <div class="card-box-header">
+            <div class="card-box-title">Grafik Omset Penjualan (7 Hari Terakhir)</div>
+            <a href="{{ url_for('transaksi') }}" class="btn-action btn-action-primary btn-action-sm">
+                <i class="ri-add-line"></i> Transaksi Baru
+            </a>
+        </div>
+        <div class="card-box-body">
+            <div style="height: 220px; position: relative;">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-box" style="margin-bottom: 0;">
+        <div class="card-box-header">
+            <div class="card-box-title">Sebaran Kategori</div>
+        </div>
+        <div class="card-box-body">
+            <div style="height: 220px; position: relative;">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    
+    <div class="card-box">
+        <div class="card-box-header">
+            <div class="card-box-title">Stok Menipis & Habis</div>
+            <a href="{{ url_for('notifikasi') }}" class="btn-action btn-action-outline btn-action-sm">Lihat Semua</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table-grid">
+                <thead>
+                    <tr>
+                        <th>Kode</th>
+                        <th>Nama Barang</th>
+                        <th>Stok</th>
+                        <th style="text-align: right;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in barang_kritis %}
+                        <tr>
+                            <td><strong>{{ b.kode_barang }}</strong></td>
+                            <td>{{ b.nama_barang }}</td>
+                            <td>
+                                {% if b.stok == 0 %}
+                                    <span class="badge-pill badge-pill-danger">Habis</span>
+                                {% else %}
+                                    <span class="badge-pill badge-pill-warning">{{ b.stok }} unit</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: right;">
+                                <a href="{{ url_for('tambah_stok', id=b.id) }}" class="btn-action btn-action-primary btn-action-sm">
+                                    Tambah
+                                </a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--slate-500); padding: 24px;">
+                                Semua stok barang dalam kondisi aman.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    
+    <div class="card-box">
+        <div class="card-box-header">
+            <div class="card-box-title">Transaksi Penjualan Terkini</div>
+            <a href="{{ url_for('laporan') }}" class="btn-action btn-action-outline btn-action-sm">Lihat Laporan</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table-grid">
+                <thead>
+                    <tr>
+                        <th>Kode Trx</th>
+                        <th>Waktu</th>
+                        <th>Total</th>
+                        <th style="text-align: right;">Detail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in transaksi_terbaru %}
+                        <tr>
+                            <td><strong style="color: var(--brand-maroon);">{{ t.kode_transaksi }}</strong></td>
+                            <td style="font-size: 0.8rem; color: var(--slate-700); font-weight: 500;">{{ t.tanggal | format_wib }}</td>
+                            <td><strong>Rp {{ "{:,.0f}".format(t.total_harga).replace(',', '.') }}</strong></td>
+                            <td style="text-align: right;">
+                                <a href="{{ url_for('detail_transaksi', id=t.id) }}" class="btn-action btn-action-outline btn-action-sm">
+                                    Struk
+                                </a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--slate-500); padding: 24px;">
+                                Belum ada transaksi penjualan recorded.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const ctxSales = document.getElementById('salesChart').getContext('2d');
+    new Chart(ctxSales, {
+        type: 'line',
+        data: {
+            labels: {{ chart_dates | tojson }},
+            datasets: [{
+                label: 'Omset Penjualan (Rp)',
+                data: {{ chart_omsets | tojson }},
+                borderColor: '#7A1C24',
+                backgroundColor: 'rgba(122, 28, 36, 0.05)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.2,
+                pointBackgroundColor: '#7A1C24',
+                pointRadius: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { callback: v => 'Rp ' + (v/1000).toLocaleString('id-ID') + 'k' }
+                }
+            }
+        }
+    });
+
+    const ctxCat = document.getElementById('categoryChart').getContext('2d');
+    new Chart(ctxCat, {
+        type: 'doughnut',
+        data: {
+            labels: {{ cat_labels | tojson }},
+            datasets: [{
+                data: {{ cat_counts | tojson }},
+                backgroundColor: ['#7A1C24', '#0F172A', '#15803D', '#B45309', '#2563EB', '#64748B']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } }
+        }
+    });
+});
+</script>
+{% endblock %}
